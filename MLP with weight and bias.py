@@ -149,25 +149,6 @@ class MLP(object):
         return error
 
 
-        # for i in reversed(range(len(self.bias))):
-        #
-        #     # dE/dW_i = (y-a_[i+1]) s'(h_[i+1))
-        #     # s'(h_[i+1] = s(h_i+1](1-s(h_[i+1]))
-        #     # s(h_[i+1)) = a_[i+1]
-        #
-        #     # dE/dW_[i-1] = (y-a_[i+1]) s'(h_[i+1]) w_i s'(h_i)
-        #
-        #     # get the activation for previous layers
-        #     activation = self.activation[i + 1]
-        #
-        #     # apply the sigmoid the derivative function
-        #     delta = error * self.sigmoid_derivatives(activation)
-        #
-        #     # save the derivative after applying the matrix multiplication
-        #     self.derivative_b[i] = delta
-        #
-        #     # backpropagation to next error
-        #     error = np.dot(delta, self.weight[i].T)
 
         if verbose:
                 print("Derivatives for W{} : {}".format(i, self.derivative[i]))
