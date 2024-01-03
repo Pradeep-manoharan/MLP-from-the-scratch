@@ -48,10 +48,7 @@ class MLP(object):
 
         bias = []
 
-        # for i in range(len(layers) - 1):
-        #     b = np.random.rand(layers[i], layers[i + 1])
-        #     bias.append(b)
-        # self.bias = bias
+
 
         for i in range(len(layers) - 1):
             b = np.random.rand(1, layers[i + 1])
@@ -105,10 +102,12 @@ class MLP(object):
         for i, (w, b) in enumerate(zip(self.weight, self.bias)):
             # calculating matrix manipulation of between previous activation and weight matrix
 
-            net_inputs = np.dot(activation, w) + b
+            net_inputs = np.dot(activation, w)
+            net_inputs_b = net_inputs + b
+            net_input_b_reshape = np.ravel(net_inputs_b)
 
             # applying the sigmoid activation function
-            activation = self.sigmoid(net_inputs)
+            activation = self.sigmoid(net_input_b_reshape)
 
             # save activation for backpropagation
             self.activation[i + 1] = activation
@@ -119,11 +118,11 @@ class MLP(object):
 
     def back_propagate(self, error, verbose=False):
 
-        # dE/dW_i = (y-a_[i+1]) s'(h_[i+1)) a_i
+         # dE/dW_i = (y-a_[i+1]) s'(h_[i+1)) a_i
         # s'(h_[i+1] = s(h_i+1](1-s(h_[i+1]))
         # s(h_[i+1)) = a_[i+1]
 
-        # dE/dW_[i-1] = (y-a_[i+1]) s'(h_[i+1])) w_i s'(h_i) a_[i-1]
+        # dE/dW_[i-1] = (y-a_[i+1]) s'(h_[i+1]) w_i s'(h_i) a_[i-1]
 
         # Iterate back through the network layers
         for i in reversed(range(len(self.derivative_w))):
@@ -137,38 +136,40 @@ class MLP(object):
             # --> ndarray ([0.1,0.2]) into ([[0.1,0.2]])
 
             current_activation = self.activation[i]
-            current_activation_reshaped = current_activation.reshape(current_activation.shape[-1], -1)
-            # current_activation = current_activation.reshape(-1,1)
+            current_activation_reshaped = current_activation.reshape(current_activation.shape[0], -1)
+
 
             # save the derivative after applying the matrix multiplication
-            # print("the delta {}".format(delta_reshaped))
-            # print("the activation {}".format(current_activation))
+
             self.derivative_w[i] = np.dot(current_activation_reshaped, delta_reshaped)
 
+            self.derivative_b[i] = delta
             # backpropagation to next error
             error = np.dot(delta, self.weight[i].T)
+        return error
 
-        for i in reversed(range(len(self.bias))):
 
-            # get the activation for previous layers
-            activation = self.activation[i + 1]
+        # for i in reversed(range(len(self.bias))):
+        #
+        #     # dE/dW_i = (y-a_[i+1]) s'(h_[i+1))
+        #     # s'(h_[i+1] = s(h_i+1](1-s(h_[i+1]))
+        #     # s(h_[i+1)) = a_[i+1]
+        #
+        #     # dE/dW_[i-1] = (y-a_[i+1]) s'(h_[i+1]) w_i s'(h_i)
+        #
+        #     # get the activation for previous layers
+        #     activation = self.activation[i + 1]
+        #
+        #     # apply the sigmoid the derivative function
+        #     delta = error * self.sigmoid_derivatives(activation)
+        #
+        #     # save the derivative after applying the matrix multiplication
+        #     self.derivative_b[i] = delta
+        #
+        #     # backpropagation to next error
+        #     error = np.dot(delta, self.weight[i].T)
 
-            # apply the sigmoid the derivative function
-            delta = error * self.sigmoid_derivatives(activation)
-
-            # delta_reshaped = delta.reshape(delta.shape[0], -1).T  # --> ndarray ([0.1,0.2]) into ([[0.1,0.2]])
-            #
-            # current_activation = self.activation[i]
-            # current_activation = current_activation.reshape(current_activation.shape[0], -1)
-            # current_activation = current_activation.reshape(-1,1)
-
-            # save the derivative after applying the matrix multiplication
-            self.derivative_b[i] = delta
-
-            # backpropagation to next error
-            error = np.dot(delta, self.bias[i].T)
-
-            if verbose:
+        if verbose:
                 print("Derivatives for W{} : {}".format(i, self.derivative[i]))
 
         # return error
@@ -177,7 +178,7 @@ class MLP(object):
         for i in range(len(self.weight)):
             weight = self.weight[i]
             # print("Original W{} {}".format(i,weight))
-            derivative = self.derivative[i]
+            derivative = self.derivative_w[i]
             weight += derivative * learning_rate
             # print("Updated W{} {}".format(i,weight))
         for i in range(len(self.bias)):
@@ -245,12 +246,7 @@ if __name__ == "__main__":
     inputs = np.array([[random() / 2 for _ in range(2)] for _ in range(1000)])  # array ([[0.1,0.2], [0.3,0.4]])
     target = np.array([[i[0] + i[1]] for i in inputs])  # array ([[0.3], [0.7]])
 
-    for (data,output) in zip(inputs,target):
-        print("First Input {}".format(data))
-        print("First output {}".format(output))
-        break
-
-    # create a mlp
+      # create a mlp
     mlp = MLP(2, [5], 1)
 
     # create dummy data
